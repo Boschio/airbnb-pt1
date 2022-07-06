@@ -8,6 +8,7 @@ const {
   commonAfterAll,
   testListingIds,
 } = require("../tests/common")
+const { createBooking } = require("./booking")
 
 beforeAll(commonBeforeAll)
 beforeEach(commonBeforeEach)
@@ -86,4 +87,49 @@ describe("Booking", () => {
       expect(bookings).toHaveLength(0)
     })
   })
+
+  describe("Test createBooking", () => {
+    test("Can create a new booking with valid params", async () => {
+      const user = { username: "jlo" }
+      const listingId = testListingIds[0]
+      const listing = await Listing.fetchListingById(listingId)
+
+      const newBooking = { 
+        startDate: new Date("03-05-2021"),
+        endDate: new Date("03-07-2021"),
+        guests: 1, }
+
+      const booking = await Booking.createBooking({newBooking,listing,user})
+
+      expect(booking).toEqual({
+        id: expect.any(Number),
+        startDate: new Date("03-05-2021"),
+        endDate: new Date("03-07-2021"),
+        paymentMethod: "card",
+        guests: 1,
+        username: "jlo",
+        hostUsername: "lebron",
+        totalCost: expect.any(String),
+        listingId: listingId,
+        userId: expect.any(Number),
+        createdAt: expect.any(Date),
+      })
+
+    })
+    test("Throws error with invalid params", async () => {
+      expect.assertions(1)
+      const user = { username: "jlo" }
+      const listingId = testListingIds[0]
+      const listing = await Listing.fetchListingById(listingId)
+
+      const newBooking = { endDate: new Date("03-07-2021") }
+      try {
+        const booking = await Booking.createBooking({newBooking,listing,user})
+      } catch(err) {
+        expect(err instanceof BadRequestError).toBeTruthy()
+      }
+    })
+
+  })
+
 })
